@@ -6,8 +6,6 @@ import { signInWithPopup, onAuthStateChanged, signOut, signInWithEmailAndPasswor
 import { firestore, firebaseAuth } from '@/firebaseconfig';
 import axios from 'axios';
 import Calender from '@/components/calender';
-// import Calendar from 'react-calendar';
-import { collection, query, where, getDocs } from "firebase/firestore";
 
 
 export default function Home() {
@@ -108,13 +106,7 @@ export default function Home() {
       })
   }
 
-  useEffect(() => {
-    // const querySnapshot = getDocs(collection(firestore, "event"));
-    // querySnapshot.forEach((doc) => {
-    //   // doc.data() is never undefined for query doc snapshots
-    //   console.log(doc.id, " => ", doc.data());
-    // });
-  }, [])
+
 
   return (
     <>
@@ -127,7 +119,7 @@ export default function Home() {
       <div className='pageContainer'>
         {user
           ? <div className='w-full flex flex-col min-h-screen max-w-5xl'>
-            <div className='w-full h-[4rem] flex flex-row items-center justify-end p-2 sticky top-0 bg-neutral-800'>
+            <div className='w-full h-[4rem] flex flex-row items-center justify-end p-2 sticky top-0 text-white text-xs bg-neutral-800'>
               {user.email} &nbsp;
               <button className='primaryButton' onClick={handleSignOut}>Logout</button>
             </div>
@@ -197,7 +189,7 @@ export default function Home() {
               </div>
 
               <button
-                className='text-right text-xs primary-text'
+                className='text-right text-xs primary-text text-white'
                 type='button'
                 onClick={handleForgotPassword}>Forgot Password</button>
               <div className='text-center mb-1 h-6 text-red-700'>{error}</div>

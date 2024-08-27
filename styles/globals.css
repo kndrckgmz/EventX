@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  --border-radius: 2rem;
+  --border-radius: 1rem;
   --font-mono: ui-monospace, Menlo, Monaco, 'Cascadia Mono', 'Segoe UI Mono',
     'Roboto Mono', 'Oxygen Mono', 'Ubuntu Monospace', 'Source Code Pro',
     'Fira Mono', 'Droid Sans Mono', 'Courier New', monospace;
@@ -69,7 +69,7 @@ a {
   align-items: center;
   width: 20rem;
   max-width: 100%;
-  padding: 1rem;
+  padding: 2rem 1rem;
   border-radius: var(--border-radius);
   background-color: #191919;
 }

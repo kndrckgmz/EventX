@@ -3,13 +3,12 @@ import { getAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 
 const clientCredentials = {
-	apiKey: "AIzaSyCNHozucyvjsT1qnLfoCq4gYA40v_dDWts",
-	authDomain: "kendrickgomez.firebaseapp.com",
-	projectId: "kendrickgomez",
-	storageBucket: "kendrickgomez.appspot.com",
-	messagingSenderId: "376648720161",
-	appId: "1:376648720161:web:334b376379b59ddae8e860",
-	clientId: "376648720161-5m23gg58uu7gd43pdro15kolamc2b2n9.apps.googleusercontent.com",
+	apiKey: "AIzaSyBCGjyibEmex7ofahCxG_KobHK3J90sWZU",
+	authDomain: "artist-manager-coa.firebaseapp.com",
+	projectId: "artist-manager-coa",
+	storageBucket: "artist-manager-coa.appspot.com",
+	messagingSenderId: "621348933740",
+	appId: "1:621348933740:web:15ae48464e463c248a4849"
 }
 
 let firestore, firebaseAuth

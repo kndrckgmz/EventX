@@ -1,4 +1,4 @@
-import { Fragment, useState } from 'react'
+import { Fragment, useState, useEffect } from 'react'
 import { Menu, Transition } from '@headlessui/react'
 import { Icon } from '@iconify/react';
 import {
@@ -15,45 +15,31 @@ import {
     parseISO,
     startOfToday,
 } from 'date-fns'
-
-// export function JamChevronCircleLeftF(props) {
-//     return (<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="-2 -2 24 24" {...props}><path fill="currentColor" d="m8.172 10l3.535-3.536a1 1 0 1 0-1.414-1.414L6.05 9.293a1 1 0 0 0 0 1.414l4.243 4.243a1 1 0 0 0 1.414-1.414zM10 20C4.477 20 0 15.523 0 10S4.477 0 10 0s10 4.477 10 10s-4.477 10-10 10"></path></svg>);
-// }
-
-// export function JamChevronCircleRightF(props) {
-//     return (<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="-2 -2 24 24" {...props}><path fill="currentColor" d="m11.828 10l-3.535 3.536a1 1 0 0 0 1.414 1.414l4.243-4.243a1 1 0 0 0 0-1.414L9.707 5.05a1 1 0 0 0-1.414 1.414zM10 20C4.477 20 0 15.523 0 10S4.477 0 10 0s10 4.477 10 10s-4.477 10-10 10"></path></svg>);
-// }
+import { firebaseAuth, firestore } from '@/firebaseconfig';
+import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
 
 const meetings = [
     {
         id: 1,
         name: 'Leslie Alexander',
-        imageUrl:
-            'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
         startDatetime: '2024-08-13T13:00',
         endDatetime: '2024-08-13T14:30',
     },
     {
         id: 2,
         name: 'Leslie Alexander',
-        imageUrl:
-            'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
         startDatetime: '2024-08-13T14:00',
         endDatetime: '2024-08-13T16:30',
     },
     {
         id: 3,
         name: 'Leslie Alexander',
-        imageUrl:
-            'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
         startDatetime: '2024-08-13T07:00',
         endDatetime: '2024-08-13T08:30',
     },
     {
         id: 4,
         name: 'Leslie Alexander',
-        imageUrl:
-            'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
         startDatetime: '2024-08-21T07:00',
         endDatetime: '2024-08-21T08:30',
     }
@@ -63,12 +49,49 @@ function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
 }
 
+
 const Calender = () => {
 
     let today = startOfToday()
-    let [selectedDay, setSelectedDay] = useState(today)
-    let [currentMonth, setCurrentMonth] = useState(format(today, 'MMM-yyyy'))
+
+    const [selectedDay, setSelectedDay] = useState(today)
+    const [currentMonth, setCurrentMonth] = useState(format(today, 'MMM-yyyy'))
     let firstDayCurrentMonth = parse(currentMonth, 'MMM-yyyy', new Date())
+    const [events, setEvents] = useState([])
+    const [selectedDayEvents, setSelectedDayEvents] = useState([])
+
+    useEffect(() => {
+        const get_all_events = async () => {
+            const querySnapshot = await getDocs(collection(firestore, "event"));
+            let temparray = []
+            querySnapshot.forEach((doc) => {
+                let ex = doc.data()
+                ex.id = doc.id
+                temparray.push(ex)
+                setEvents(temparray);
+                // setEvents([...events, ex]);
+            });
+        }
+        get_all_events();
+    }, [])
+
+    useEffect(() => {
+        let filteredevents = events.filter((event) => {
+            let date = (event) => {
+                console.log(event)
+                const milliseconds = event.startDatetime.seconds * 1000;
+                const dateObject = new Date(milliseconds);
+                const isoString = dateObject.toISOString();
+                const formattedIsoString = parseISO(isoString.slice(0, 16));
+                return (formattedIsoString)
+            }
+
+            if (isSameDay(date(event), selectedDay)) {
+                return event
+            }
+        })
+        setSelectedDayEvents(filteredevents)
+    }, [events, selectedDay])
 
     let days = eachDayOfInterval({
         start: firstDayCurrentMonth,
@@ -85,8 +108,9 @@ const Calender = () => {
         setCurrentMonth(format(firstDayNextMonth, 'MMM-yyyy'))
     }
 
-    let selectedDayMeetings = meetings.filter((meeting) =>
+    let selectedDayMeetings = meetings.filter((meeting) => {
         isSameDay(parseISO(meeting.startDatetime), selectedDay)
+    }
     )
 
     return (
@@ -165,11 +189,20 @@ const Calender = () => {
                                     </button>
 
                                     <div className="w-1 h-1 mx-auto mt-1">
-                                        {meetings.some((meeting) =>
-                                            isSameDay(parseISO(meeting.startDatetime), day)
-                                        ) && (
-                                                <div className="w-1 h-1 rounded-full bg-sky-500"></div>
-                                            )}
+                                        {events.some((event) => {
+                                            let date = (event) => {
+                                                const milliseconds = event.startDatetime.seconds * 1000;
+                                                const dateObject = new Date(milliseconds);
+                                                const isoString = dateObject.toISOString();
+                                                const formattedIsoString = parseISO(isoString.slice(0, 16));
+                                                return (formattedIsoString)
+                                            }
+                                            return isSameDay(date(event), day)
+                                        })
+                                            &&
+
+                                            (<div className="w-1 h-1 rounded-full bg-sky-500"></div>)
+                                        }
                                     </div>
                                 </div>
                             ))}
@@ -183,9 +216,16 @@ const Calender = () => {
                             </time>
                         </h2>
                         <ol className="mt-4 space-y-1 text-sm leading-6 text-gray-500">
-                            {selectedDayMeetings.length > 0 ? (
+                            {/* {selectedDayMeetings.length > 0 ? (
                                 selectedDayMeetings.map((meeting) => (
                                     <Meeting meeting={meeting} key={meeting.id} />
+                                ))
+                            ) : (
+                                <p>No events</p>
+                            )} */}
+                            {selectedDayEvents.length > 0 ? (
+                                selectedDayEvents.map((event) => (
+                                    <Event event={event} key={event.id} />
                                 ))
                             ) : (
                                 <p>No events</p>
@@ -204,10 +244,8 @@ function Meeting({ meeting }) {
 
     return (
         <li className="flex items-center px-4 py-2 space-x-4 group rounded-xl bg-neutral-800 text-white focus-within:bg-white hover:bg-neutral-700">
-            <img
-                src={meeting.imageUrl}
-                alt=""
-                className="flex-none w-10 h-10 rounded-full"
+            <div
+                className="flex-none bg-neutral-600 w-10 h-10 rounded-full"
             />
             <div className="flex-auto">
                 <p>{meeting.name}</p>
@@ -218,6 +256,116 @@ function Meeting({ meeting }) {
                     -{' '}
                     <time dateTime={meeting.endDatetime}>
                         {format(endDateTime, 'h:mm a')}
+                    </time>
+                </p>
+            </div>
+            <Menu
+                as="div"
+                className="relative opacity-0 focus-within:opacity-100 group-hover:opacity-100"
+            >
+                <div>
+                    <Menu.Button className="-m-2 flex items-center rounded-full p-1.5 text-gray-800 hover:text-gray-900">
+                        <span className="sr-only">Open options</span>
+                        <Icon icon="iconamoon:menu-kebab-vertical" />
+                        {/* <DotsVerticalIcon className="w-6 h-6" aria-hidden="true" /> */}
+                    </Menu.Button>
+                </div>
+
+                <Transition
+                    as={Fragment}
+                    enter="transition ease-out duration-100"
+                    enterFrom="transform opacity-0 scale-95"
+                    enterTo="transform opacity-100 scale-100"
+                    leave="transition ease-in duration-75"
+                    leaveFrom="transform opacity-100 scale-100"
+                    leaveTo="transform opacity-0 scale-95"
+                >
+                    <Menu.Items className="absolute right-0 z-10 mt-2 origin-top-right bg-white rounded-md shadow-lg w-36 ring-1 ring-black ring-opacity-5 focus:outline-none">
+                        <div className="py-1">
+                            <Menu.Item>
+                                {({ active }) => (
+                                    <a
+                                        href="#"
+                                        className={classNames(
+                                            active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
+                                            'block px-4 py-2 text-sm'
+                                        )}
+                                    >
+                                        Edit
+                                    </a>
+                                )}
+                            </Menu.Item>
+                            <Menu.Item>
+                                {({ active }) => (
+                                    <a
+                                        href="#"
+                                        className={classNames(
+                                            active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
+                                            'block px-4 py-2 text-sm'
+                                        )}
+                                    >
+                                        Cancel
+                                    </a>
+                                )}
+                            </Menu.Item>
+                        </div>
+                    </Menu.Items>
+                </Transition>
+            </Menu>
+        </li>
+    )
+}
+
+function Event({ event }) {
+
+    let format1 = (event) => {
+        const milliseconds = event.startDatetime.seconds * 1000;
+        const dateObject = new Date(milliseconds);
+        const isoString = dateObject.toISOString();
+        const formattedIsoString = isoString.slice(0, 16);
+        return (formattedIsoString)
+    }
+    let startDateTime = (event) => {
+        const milliseconds = event.startDatetime.seconds * 1000;
+        const dateObject = new Date(milliseconds);
+        const isoString = dateObject.toISOString();
+        const formattedIsoString = parseISO(isoString.slice(0, 16));
+        return (formattedIsoString)
+    }
+    let format2 = (event) => {
+        const milliseconds = event.endDatetime.seconds * 1000;
+        const dateObject = new Date(milliseconds);
+        const isoString = dateObject.toISOString();
+        const formattedIsoString = isoString.slice(0, 16);
+        return formattedIsoString
+    }
+    let endDateTime = (event) => {
+        const milliseconds = event.endDatetime.seconds * 1000;
+        const dateObject = new Date(milliseconds);
+        const isoString = dateObject.toISOString();
+        const formattedIsoString = parseISO(isoString.slice(0, 16));
+        return (formattedIsoString)
+    }
+
+    return (
+        <li className="flex items-center px-4 py-2 space-x-4 group rounded-xl bg-neutral-800 text-white focus-within:bg-white hover:bg-neutral-700 cursor-pointer hover:scale-[1.03] transition-all duration-300">
+            <div
+                className="flex-none bg-neutral-600 w-10 h-10 rounded-full"
+            />
+            <div className="flex-auto">
+                <strong><p>
+                    {
+                        event.Artist.join(', ')
+                    }
+                </p></strong>
+                <div>{event.Venue} - ${event.Payment}</div>
+                <p className="mt-0.5">
+                    <time dateTime={format1(event)}>
+                        {format(startDateTime(event), 'h:mm a')}
+                    </time>{' '}
+                    -{' '}
+                    <time dateTime={format2(event)}>
+                        {format(endDateTime(event), 'h:mm a')}
                     </time>
                 </p>
             </div>
